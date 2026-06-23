@@ -59,7 +59,7 @@ MAX_KNOWLEDGE_LINES = 100
 
 KEBAB_CASE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 ISO_ALPHA2 = re.compile(r"^[a-z]{2}$")
-RANGE_SHORTHAND = re.compile(r"^(\d+)\.\.(\d+)$")
+RANGE_SHORTHAND = re.compile(r"^(\d+)\.\.(\d+)?$")
 FENCED_CODE_BLOCK = re.compile(r"^```", re.MULTILINE)
 HEADING_H2 = re.compile(r"^##\s+(.+?)\s*$", re.MULTILINE)
 
@@ -149,6 +149,8 @@ def expand_bc_version(value: Any) -> tuple[list[int] | str | None, str | None]:
     """Return (expanded, error-message). One of the two is None.
 
     For the universal sentinel ["all"], `expanded` is the string "all".
+    For an open-ended range like ["26.."], `expanded` is the normalized
+    string "26.." (it cannot be enumerated; consumers match target >= 26).
     Otherwise it is the expanded list of version integers.
     """
     if not isinstance(value, list) or not value:
@@ -163,15 +165,19 @@ def expand_bc_version(value: Any) -> tuple[list[int] | str | None, str | None]:
         if any(v <= 0 for v in value):
             return None, "integers must be positive"
         return sorted(set(value)), None
-    # Case 2: single-element range-shorthand like "[26..28]"
+    # Case 2: single-element range shorthand — closed "[26..28]" or open-ended "[26..]"
     if len(value) == 1 and isinstance(value[0], str):
         m = RANGE_SHORTHAND.match(value[0].strip())
         if m:
-            start, end = int(m.group(1)), int(m.group(2))
+            start = int(m.group(1))
+            if m.group(2) is None:
+                # Open-ended: "start.." applies from start onwards, no upper bound.
+                return f"{start}..", None
+            end = int(m.group(2))
             if start > end:
                 return None, f"range '{value[0]}' is not ascending"
             return list(range(start, end + 1)), None
-    return None, "must be [all], a list of integers, or a single-element range shorthand like [26..28]"
+    return None, "must be [all], a list of integers, or a range shorthand like [26..28] or [26..]"
 
 
 def headings_in_order(body: str) -> list[tuple[str, int]]:

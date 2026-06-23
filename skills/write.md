@@ -43,7 +43,7 @@ Knowledge files do not contain code. Samples live as **sibling files** next to t
 
 ## Choosing frontmatter values
 
-**`bc-version`.** Default to `[all]` when the guidance is universal — a BC language pattern, a property on a long-standing platform type, a CodeCop rule, or a platform behaviour that has not changed across versions. Use an explicit list or range (`[26, 27, 28]`, `[26..28]`) only when the guidance is tied to a version-gated API, a deprecation, or platform behaviour that genuinely differs across versions. Most knowledge files should be `[all]`; reach for a range only with a concrete reason.
+**`bc-version`.** Default to `[all]` when the guidance is universal — a BC language pattern, a property on a long-standing platform type, a CodeCop rule, or a platform behaviour that has not changed across versions. Use an explicit list or range (`[26, 27, 28]`, `[26..28]`) only when the guidance is tied to a version-gated API, a deprecation, or platform behaviour that genuinely differs across versions. When guidance applies to a feature introduced in version N and not expected to be removed, prefer the open-ended range `[N..]` over a closed range so the file keeps matching future versions — reserve a closed upper bound for guidance that genuinely stops applying (for example, a behaviour removed or replaced in a later version). Most knowledge files should be `[all]`; reach for a range only with a concrete reason.
 
 **`domain`.** Pick one. If two fit, the file is probably two concerns. If no existing domain fits, introduce a new one — domains are open. Prefer existing domains when they are a reasonable fit, to keep retrieval predictable.
 
